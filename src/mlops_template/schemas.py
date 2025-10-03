@@ -14,10 +14,11 @@ import pandas as pd
 try:
     import pandera as pa  # type: ignore
     from pandera import DataFrameSchema  # type: ignore
+    pa_module = pa
 except Exception:  # pragma: no cover - optional dependency
     from typing import Any as _Any
 
-    pa: _Any = None
+    pa_module: _Any = None
     DataFrameSchema = _Any
 
 
@@ -26,7 +27,7 @@ def validate_dataframe(df: pd.DataFrame, schema: Any) -> pd.DataFrame:
 
     If pandera is not installed, raises RuntimeError explaining the dependency.
     """
-    if pa is None:
+    if pa_module is None:
         raise RuntimeError(
             "pandera is not installed; install pandera to enable schema validation"
         )

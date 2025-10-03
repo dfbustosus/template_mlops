@@ -21,9 +21,9 @@ from typing import Any
 
 # mlflow is optional for running tests locally; guard import
 try:
-    import mlflow  # type: ignore
+    import mlflow as mlflow_module  # type: ignore
 except Exception:  # pragma: no cover - defensive
-    mlflow: Any = None
+    mlflow_module: Any = None
 
 
 @dataclass
@@ -99,9 +99,9 @@ def save_model(joblib_path: str, model: ClassifierMixin) -> None:
     """Persist a model to disk using joblib and track it with MLflow as an artifact."""
     joblib.dump(model, joblib_path)
     # Only attempt to log artifact if mlflow is available and configured
-    if mlflow is not None:
+    if 'mlflow_module' in globals() and mlflow_module is not None:
         try:
-            mlflow.log_artifact(joblib_path)
+            mlflow_module.log_artifact(joblib_path)
         except Exception:
             # Do not let MLflow logging break core functionality
             pass
@@ -126,7 +126,7 @@ class ModelManager:
             track_mlflow: when True, attempt to log metrics/artifacts to MLflow if
                 the mlflow package is available.
         """
-        self.track_mlflow = track_mlflow and mlflow is not None
+        self.track_mlflow = track_mlflow and ('mlflow_module' in globals() and mlflow_module is not None)
         self.model: ClassifierMixin | None = None
 
     def train(
@@ -142,9 +142,9 @@ class ModelManager:
         if self.model is None:
             raise RuntimeError("no trained model available; call train() first")
         result = evaluate_classifier(self.model, X, y)
-        if self.track_mlflow and mlflow is not None:
+        if self.track_mlflow and mlflow_module is not None:
             try:
-                mlflow.log_metrics(result.metrics)
+                mlflow_module.log_metrics(result.metrics)
             except Exception:
                 pass
         return result
@@ -155,7 +155,7 @@ class ModelManager:
             raise RuntimeError("no trained model available to save")
         save_model(path, self.model)
         # write a model signature (feature names if available)
-        signature_path = f"{path}.signature.json"
+        signature_path: Optional[str] = f"{path}.signature.json"
         try:
             feature_names = getattr(self.model, "feature_names_in_", None)
             signature = {
@@ -166,13 +166,13 @@ class ModelManager:
             with open(signature_path, "w") as fh:
                 json.dump(signature, fh)
         except Exception:
-            signature_path: Optional[str] = None
+            signature_path = None
 
-        if self.track_mlflow and mlflow is not None:
+        if self.track_mlflow and mlflow_module is not None:
             try:
-                mlflow.log_artifact(path)
+                mlflow_module.log_artifact(path)
                 if signature_path is not None:
-                    mlflow.log_artifact(signature_path)
+                    mlflow_module.log_artifact(signature_path)
             except Exception:
                 pass
 

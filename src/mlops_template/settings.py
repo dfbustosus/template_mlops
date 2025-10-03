@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Any
 
 try:
     # pydantic v1 exposes BaseSettings; v2 moved BaseSettings to pydantic-settings
     from pydantic import BaseSettings, Field  # type: ignore
 
-    class Settings(BaseSettings):
+    class PydanticSettings(BaseSettings):
         """Pydantic-backed settings object used when pydantic is available."""
 
         project_name: str = "mlops_template"
@@ -29,7 +29,7 @@ try:
 
             env_file = ".env"
 
-    settings = Settings()
+    settings: Any = PydanticSettings()
 except Exception:
     # Lightweight fallback to avoid hard dependency on pydantic for tests
     @dataclass
@@ -42,4 +42,4 @@ except Exception:
         mlflow_experiment: str = os.environ.get("MLFLOW_EXPERIMENT", "default")
         ghcr_repository: Optional[str] = os.environ.get("GHCR_REPOSITORY")
 
-    settings = SimpleSettings()
+    settings: Any = SimpleSettings()
