@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 import joblib
 import pandas as pd
@@ -17,11 +17,13 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+from typing import Any
+
 # mlflow is optional for running tests locally; guard import
 try:
-    import mlflow
+    import mlflow  # type: ignore
 except Exception:  # pragma: no cover - defensive
-    mlflow = None
+    mlflow: Any = None
 
 
 @dataclass
@@ -164,7 +166,7 @@ class ModelManager:
             with open(signature_path, "w") as fh:
                 json.dump(signature, fh)
         except Exception:
-            signature_path = None
+            signature_path: Optional[str] = None
 
         if self.track_mlflow and mlflow is not None:
             try:

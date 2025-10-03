@@ -8,9 +8,11 @@ from .data import DataSplit
 from .models import ModelResult, evaluate_classifier, save_model, train_classifier
 
 try:
-    import mlflow
+    import mlflow  # type: ignore
 except Exception:  # pragma: no cover - defensive
-    mlflow = None
+    from typing import Any
+
+    mlflow: Any = None
 
 
 def run_training_pipeline(

@@ -33,7 +33,7 @@ try:
 except Exception:
     # Lightweight fallback to avoid hard dependency on pydantic for tests
     @dataclass
-    class Settings:
+    class SimpleSettings:
         """Lightweight fallback settings read from environment variables."""
 
         project_name: str = "mlops_template"
@@ -42,4 +42,4 @@ except Exception:
         mlflow_experiment: str = os.environ.get("MLFLOW_EXPERIMENT", "default")
         ghcr_repository: Optional[str] = os.environ.get("GHCR_REPOSITORY")
 
-    settings = Settings()
+    settings = SimpleSettings()

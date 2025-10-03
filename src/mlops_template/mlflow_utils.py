@@ -5,7 +5,12 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-import mlflow
+from typing import Any
+
+try:
+    import mlflow
+except Exception:  # pragma: no cover - defensive
+    mlflow: Any = None
 
 
 def configure_local_mlflow(tracking_dir: Optional[str] = None) -> None:

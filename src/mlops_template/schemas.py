@@ -12,11 +12,13 @@ from typing import Any
 import pandas as pd
 
 try:
-    import pandera as pa
-    from pandera import DataFrameSchema
+    import pandera as pa  # type: ignore
+    from pandera import DataFrameSchema  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
-    pa = None
-    DataFrameSchema = Any
+    from typing import Any as _Any
+
+    pa: _Any = None
+    DataFrameSchema = _Any
 
 
 def validate_dataframe(df: pd.DataFrame, schema: Any) -> pd.DataFrame:
