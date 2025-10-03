@@ -83,4 +83,3 @@ jobs:
 
       - name: Run property-based tests
         run: pytest -q tests/test_property_based.py
-

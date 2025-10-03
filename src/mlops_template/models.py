@@ -18,10 +18,15 @@ from sklearn.metrics import (
 )
 
 # mlflow is optional for running tests locally; guard import
+# Predeclare the alias so static checkers see a single definition, then
+# assign the real module into it if available.
+mlflow_module: Any = None
 try:
-    import mlflow as mlflow_module  # type: ignore
+    import mlflow  # type: ignore
+
+    mlflow_module = mlflow
 except Exception:  # pragma: no cover - defensive
-    mlflow_module: Any = None
+    pass
 
 
 @dataclass
@@ -163,9 +168,11 @@ class ModelManager:
                     list(feature_names) if feature_names is not None else []
                 )
             }
-            with open(signature_path, "w") as fh:
+            # open() requires a concrete str; signature_path is a str here
+            with open(str(signature_path), "w") as fh:
                 json.dump(signature, fh)
         except Exception:
+            # If writing fails, clear the signature_path so we don't attempt to log it
             signature_path = None
 
         if self.track_mlflow and mlflow_module is not None:

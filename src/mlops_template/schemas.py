@@ -7,20 +7,28 @@ installed, attempting to validate will raise a helpful RuntimeError.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
+# Predeclare pandera alias to avoid duplicate-definition complaints from mypy
+# When type checking, import the concrete DataFrameSchema type for static
+# analyzers. At runtime we avoid binding the name to different objects which
+# can confuse mypy when pre-commit runs across multiple files.
+if TYPE_CHECKING:  # pragma: no cover - typing-only
+    from pandera import DataFrameSchema  # type: ignore
+else:
+    DataFrameSchema = Any
+
+# Predeclare pandera alias to avoid duplicate-definition complaints from mypy
+_pa: Any = None
 try:
     import pandera as pa  # type: ignore
-    from pandera import DataFrameSchema  # type: ignore
 
-    pa_module = pa
+    _pa = pa
 except Exception:  # pragma: no cover - optional dependency
-    from typing import Any as _Any
-
-    pa_module: _Any = None
-    DataFrameSchema = _Any
+    # leave _pa as None
+    pass
 
 
 def validate_dataframe(df: pd.DataFrame, schema: Any) -> pd.DataFrame:
@@ -28,7 +36,7 @@ def validate_dataframe(df: pd.DataFrame, schema: Any) -> pd.DataFrame:
 
     If pandera is not installed, raises RuntimeError explaining the dependency.
     """
-    if pa_module is None:
+    if _pa is None:
         raise RuntimeError(
             "pandera is not installed; install pandera to enable schema validation"
         )

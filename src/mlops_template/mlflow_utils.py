@@ -5,10 +5,15 @@ from __future__ import annotations
 import os
 from typing import Any, Optional
 
+# Predeclare alias used across modules so mypy doesn't see multiple
+# definitions when modules import/assign to it independently.
+mlflow_module: Any = None
 try:
-    import mlflow as mlflow_module  # type: ignore
+    import mlflow  # type: ignore
+
+    mlflow_module = mlflow
 except Exception:  # pragma: no cover - defensive
-    mlflow_module: Any = None
+    pass
 
 
 def configure_local_mlflow(tracking_dir: Optional[str] = None) -> None:

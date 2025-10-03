@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+# Predeclare alias for mypy/no-redef stability; assign actual module when available
+from typing import Any as _Any
 from typing import Dict, Optional
 
 from .data import DataSplit
 from .models import ModelResult, evaluate_classifier, save_model, train_classifier
 
+mlflow_module: _Any = None
 try:
-    import mlflow as mlflow_module  # type: ignore
-except Exception:  # pragma: no cover - defensive
-    from typing import Any
+    import mlflow  # type: ignore
 
-    mlflow_module: Any = None
+    mlflow_module = mlflow
+except Exception:  # pragma: no cover - defensive
+    pass
 
 
 def run_training_pipeline(
