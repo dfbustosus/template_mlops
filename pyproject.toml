@@ -4,6 +4,7 @@ name = "mlops-template"
 version = "0.1.0"
 description = "Opinionated MLOps project template"
 authors = ["dfbustosus <david@example.com>"]
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.11"
