@@ -33,6 +33,13 @@ try:
     from pydantic import BaseSettings, Field  # type: ignore
 
     class PydanticSettings(BaseSettings):
+        """Pydantic-backed settings loaded from environment variables.
+
+        This class is used when pydantic is available and provides the same
+        configuration fields as :class:`SimpleSettings` but supports reading
+        from an optional .env file.
+        """
+
         project_name: str = "mlops_template"
         python_random_seed: int = Field(42, env="PYTHON_RANDOM_SEED")
         mlflow_tracking_uri: Optional[str] = Field(None, env="MLFLOW_TRACKING_URI")
@@ -40,6 +47,8 @@ try:
         ghcr_repository: Optional[str] = Field(None, env="MLFLOW_REPOSITORY")
 
         class Config:
+            """Pydantic configuration for environment file loading."""
+
             env_file = ".env"
 
     settings = PydanticSettings()  # type: ignore[call-arg]

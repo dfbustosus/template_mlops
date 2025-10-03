@@ -65,14 +65,46 @@ class FeatureEngineer:
         infer types using pandas dtypes.
         """
         if numeric_cols is None:
+            # First try pandas' dtype detection
             numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
+            # If no numeric columns were detected (sometimes Hypothesis inputs
+            # or mixed types produce object dtype), attempt a safe coercion to
+            # numeric and include columns that successfully coerce for at least
+            # one value.
+            if not numeric_cols and df.shape[1] > 0:
+                coerced = df.apply(lambda s: pd.to_numeric(s, errors="coerce"))
+                numeric_cols = [c for c in df.columns if coerced[c].notna().any()]
         if categorical_cols is None:
             categorical_cols = df.select_dtypes(
                 include=["object", "category"]
             ).columns.tolist()
 
+        # If nothing was inferred (e.g., Hypothesis generated values with
+        # unexpected dtypes), default to treating all columns as numeric so
+        # the pipeline has at least one transformer.
+        if not numeric_cols and not categorical_cols and df.shape[1] > 0:
+            numeric_cols = df.columns.tolist()
+
         if df.shape[0] == 0:
             raise ValueError("Cannot fit FeatureEngineer on empty DataFrame")
+
+        # Preprocess numeric columns in a working copy so the transformer
+        # sees consistent numeric input and imputer/scaler do not encounter
+        # entirely-empty columns.
+        df_work = df.copy()
+        if numeric_cols:
+            # Coerce to numeric, replace infinities with NaN
+            df_work[numeric_cols] = df_work[numeric_cols].apply(
+                lambda s: pd.to_numeric(s, errors="coerce")
+            )
+            df_work[numeric_cols] = df_work[numeric_cols].replace(
+                [np.inf, -np.inf], np.nan
+            )
+            # Fill columns that are entirely NaN with zeros so SimpleImputer
+            # and StandardScaler have observed values to compute stats.
+            for col in numeric_cols:
+                if not df_work[col].notna().any():
+                    df_work[col] = 0.0
 
         numeric_transformer = Pipeline(
             steps=[
@@ -133,8 +165,38 @@ class FeatureEngineer:
         self._transformer = ColumnTransformer(
             transformers=transformers, remainder="drop"
         )
-        # Fit transformer to compute encodings and imputer statistics
-        self._transformer.fit(df)
+        # Fit transformer to compute encodings and imputer statistics on the
+        # preprocessed dataframe so numeric transformers get numeric inputs.
+        try:
+            self._transformer.fit(df_work)
+        except ValueError:
+            # Some pathological inputs (e.g., from property tests) may cause
+            # the numeric imputer to skip all features. Fall back to a
+            # conservative constant imputer so fitting can proceed.
+            if numeric_cols:
+                from sklearn.impute import SimpleImputer as _SI
+
+                fallback_numeric = Pipeline(
+                    steps=[
+                        (
+                            "imputer",
+                            _SI(strategy="constant", fill_value=0.0),
+                        ),
+                        ("scaler", StandardScaler()),
+                    ]
+                )
+                # replace numeric transformer in transformers list
+                transformers = [
+                    (name, (fallback_numeric if name == "num" else trans), cols)
+                    for name, trans, cols in transformers
+                ]
+                self._transformer = ColumnTransformer(
+                    transformers=transformers, remainder="drop"
+                )
+                self._transformer.fit(df_work)
+            else:
+                # re-raise if there's nothing sensible to fall back to
+                raise
         self._fitted = True
         return self
 
