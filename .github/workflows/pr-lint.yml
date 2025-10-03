@@ -36,7 +36,7 @@ jobs:
           # Install project (including dev) into the runner environment so
           # linters and tests have access to runtime deps like pandas.
           poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction --no-ansi --with dev
 
       # - name: Run pre-commit (checks)
       #   run: pre-commit run --all-files
@@ -85,7 +85,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction --no-ansi --with dev
 
       - name: Run property-based tests
         run: pytest -q tests/test_property_based.py
