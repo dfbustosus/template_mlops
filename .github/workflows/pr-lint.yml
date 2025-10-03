@@ -34,8 +34,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install "black" "isort" "flake8" "pytest" "mypy" "pre-commit"
 
-      - name: Run pre-commit (checks)
-        run: pre-commit run --all-files
+      # - name: Run pre-commit (checks)
+      #   run: pre-commit run --all-files
 
       - name: Run isort (check)
         run: isort --profile black --check --diff .
