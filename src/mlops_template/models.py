@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import joblib
 import pandas as pd
@@ -16,8 +16,6 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-
-from typing import Any
 
 # mlflow is optional for running tests locally; guard import
 try:
@@ -99,7 +97,7 @@ def save_model(joblib_path: str, model: ClassifierMixin) -> None:
     """Persist a model to disk using joblib and track it with MLflow as an artifact."""
     joblib.dump(model, joblib_path)
     # Only attempt to log artifact if mlflow is available and configured
-    if 'mlflow_module' in globals() and mlflow_module is not None:
+    if "mlflow_module" in globals() and mlflow_module is not None:
         try:
             mlflow_module.log_artifact(joblib_path)
         except Exception:
@@ -126,7 +124,9 @@ class ModelManager:
             track_mlflow: when True, attempt to log metrics/artifacts to MLflow if
                 the mlflow package is available.
         """
-        self.track_mlflow = track_mlflow and ('mlflow_module' in globals() and mlflow_module is not None)
+        self.track_mlflow = track_mlflow and (
+            "mlflow_module" in globals() and mlflow_module is not None
+        )
         self.model: ClassifierMixin | None = None
 
     def train(

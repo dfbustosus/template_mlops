@@ -14,6 +14,7 @@ import pandas as pd
 try:
     import pandera as pa  # type: ignore
     from pandera import DataFrameSchema  # type: ignore
+
     pa_module = pa
 except Exception:  # pragma: no cover - optional dependency
     from typing import Any as _Any

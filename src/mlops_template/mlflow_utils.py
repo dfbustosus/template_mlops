@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
-
-from typing import Any
+from typing import Any, Optional
 
 try:
     import mlflow as mlflow_module  # type: ignore

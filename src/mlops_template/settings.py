@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any, Optional
 
 try:
     # pydantic v1 exposes BaseSettings; v2 moved BaseSettings to pydantic-settings
